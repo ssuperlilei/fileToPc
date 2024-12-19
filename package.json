@@ -1,0 +1,19 @@
+{
+  "name": "filetopc",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "图片等文件传到电脑",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lilei",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "image-hash": "^5.3.2",
+    "p-limit": "^6.1.0",
+    "pixelmatch": "^6.0.0",
+    "sharp": "^0.33.5"
+  }
+}
