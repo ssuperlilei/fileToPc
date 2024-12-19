@@ -1,5 +1,5 @@
 {
-  "name": "filetopc",
+  "name": "file-to-pc",
   "version": "1.0.0",
   "type": "module",
   "description": "图片等文件传到电脑",
@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "lilei",
+  "author": "li lei",
   "license": "MIT",
   "dependencies": {
     "fs-extra": "^11.2.0",
