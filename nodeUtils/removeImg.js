@@ -82,7 +82,6 @@ async function deleteFileWithDelay(filePath) {
     console.error(`Error deleting file ${filePath}:`, err)
   }
 }
-// 比较文件夹中的所有图片，并删除相似度超过 95% 的图片
 async function compareFolderImages(folderPath) {
   const files = await fs.readdir(folderPath)
   const imageFiles = files.filter((file) => /\.(jpg|jpeg|png|gif|png)$/i.test(file)) // 包括 PNG 格式
@@ -118,53 +117,57 @@ async function compareFolderImages(folderPath) {
   }
   console.log('All deletions complete.')
 }
-
-const notIsMainThreadFun = async () => {
-  const { imagePath1, imagePath2 } = workerData
-  // 如果是 PNG 格式，先转换为 JPEG 格式
-  const tempImagePath1 = imagePath1.endsWith('.png') ? await convertToJpeg(imagePath1) : imagePath1
-  const tempImagePath2 = imagePath2.endsWith('.png') ? await convertToJpeg(imagePath2) : imagePath2
-
-  const hash1 = await getImageHash(tempImagePath1)
-  const hash2 = await getImageHash(tempImagePath2)
-
-  const hashSimilarity = hammingDistance(hash1, hash2)
-  if (hashSimilarity < 5) {
-    parentPort.postMessage(95) // 哈希值相似，直接返回95%的相似度
-    return
-  }
-
-  // 逐像素比较
-  const img1 = sharp(tempImagePath1)
-  const img2 = sharp(tempImagePath2)
-
-  const metadata1 = await img1.metadata()
-  const metadata2 = await img2.metadata()
-
-  if (metadata1.width !== metadata2.width || metadata1.height !== metadata2.height) {
-    parentPort.postMessage(0)
-    return
-  }
-
-  const buffer1 = await img1.resize(256, 256).raw().toBuffer() // 缩放为 256x256 以减少比较量
-  const buffer2 = await img2.resize(256, 256).raw().toBuffer()
-
-  const diff = Buffer.alloc(buffer1.length)
-  const numDiffPixels = pixelmatch(buffer1, buffer2, diff, 256, 256, { threshold: 0.1 }) // 使用调整后的宽度和高度
-  const totalPixels = 256 * 256
-  const similarity = ((totalPixels - numDiffPixels) / totalPixels) * 100
-
-  parentPort.postMessage(similarity)
-
-  // 删除临时转换的图像文件
-  if (tempImagePath1 !== imagePath1) fs.removeSync(tempImagePath1)
-  if (tempImagePath2 !== imagePath2) fs.removeSync(tempImagePath2)
-}
 // Worker 线程任务
 if (!isMainThread) {
-  notIsMainThreadFun()
+  const { imagePath1, imagePath2 } = workerData
+
+  // 计算图像哈希值
+  ;(async () => {
+    // 如果是 PNG 格式，先转换为 JPEG 格式
+    const tempImagePath1 = imagePath1.endsWith('.png')
+      ? await convertToJpeg(imagePath1)
+      : imagePath1
+    const tempImagePath2 = imagePath2.endsWith('.png')
+      ? await convertToJpeg(imagePath2)
+      : imagePath2
+
+    const hash1 = await getImageHash(tempImagePath1)
+    const hash2 = await getImageHash(tempImagePath2)
+
+    const hashSimilarity = hammingDistance(hash1, hash2)
+    if (hashSimilarity < 5) {
+      parentPort.postMessage(95) // 哈希值相似，直接返回95%的相似度
+      return
+    }
+
+    // 逐像素比较
+    const img1 = sharp(tempImagePath1)
+    const img2 = sharp(tempImagePath2)
+
+    const metadata1 = await img1.metadata()
+    const metadata2 = await img2.metadata()
+
+    if (metadata1.width !== metadata2.width || metadata1.height !== metadata2.height) {
+      parentPort.postMessage(0)
+      return
+    }
+
+    const buffer1 = await img1.resize(256, 256).raw().toBuffer() // 缩放为 256x256 以减少比较量
+    const buffer2 = await img2.resize(256, 256).raw().toBuffer()
+
+    const diff = Buffer.alloc(buffer1.length)
+    const numDiffPixels = pixelmatch(buffer1, buffer2, diff, 256, 256, { threshold: 0.1 }) // 使用调整后的宽度和高度
+    const totalPixels = 256 * 256
+    const similarity = ((totalPixels - numDiffPixels) / totalPixels) * 100
+
+    parentPort.postMessage(similarity)
+
+    // 删除临时转换的图像文件
+    if (tempImagePath1 !== imagePath1) fs.removeSync(tempImagePath1)
+    if (tempImagePath2 !== imagePath2) fs.removeSync(tempImagePath2)
+  })()
 } else {
-  const folderPath = '../images' // 替换为你的文件夹路径
+  const folderPath = './images' // 替换为你的文件夹路径
   compareFolderImages(folderPath)
     .catch((err) => console.error('Error comparing images:', err))
     .finally(() => process.exit())
