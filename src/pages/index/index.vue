@@ -8,47 +8,34 @@
 }
 </route>
 <template>
-  <view
-    class="bg-white overflow-hidden pt-2 px-4"
-    :style="{ marginTop: safeAreaInsets?.top + 'px' }"
-  >
-    <view class="mt-12">
-      <image src="/static/logo.svg" alt="" class="w-28 h-28 block mx-auto" />
-    </view>
-    <view class="text-center text-4xl main-title-color mt-4">unibest</view>
-    <view class="text-center text-2xl mt-2 mb-8">最好用的 uniapp 开发模板</view>
-
-    <view class="text-justify max-w-100 m-auto text-4 indent mb-2">{{ description }}</view>
-    <view class="text-center mt-8">
-      当前平台是：
-      <text class="text-green-500">{{ PLATFORM.platform }}</text>
-    </view>
-    <view class="text-center mt-4">
-      模板分支是：
-      <text class="text-green-500">base</text>
-    </view>
+  <wd-navbar title="小功能"></wd-navbar>
+  <view class="bg-gray-100 h-lvh flex-items-start p-4">
+    <wd-cell
+      rd-4
+      title="图片上传"
+      value=""
+      clickable
+      label="讲手机的照片传到电脑，完成之后调用插件去重"
+      icon="picture"
+      @click="uploadImg"
+    />
   </view>
 </template>
 
 <script lang="ts" setup>
 import { TestEnum } from '@/typings'
-import PLATFORM from '@/utils/platform'
 
 defineOptions({
   name: 'Home',
 })
-
-// 获取屏幕边界到安全区域距离
-const { safeAreaInsets } = uni.getSystemInfoSync()
-const author = ref('菲鸽')
-const description = ref(
-  'unibest 是一个集成了多种工具和技术的 uniapp 开发模板，由 uniapp + Vue3 + Ts + Vite4 + UnoCss + UniUI + VSCode 构建，模板具有代码提示、自动格式化、统一配置、代码片段等功能，并内置了许多常用的基本组件和基本功能，让你编写 uniapp 拥有 best 体验。',
-)
 // 测试 uni API 自动引入
 onLoad(() => {
-  console.log(author)
   console.log(TestEnum.A)
 })
+
+const uploadImg = () => {
+  console.log('ssss')
+}
 </script>
 
 <style>
